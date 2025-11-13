@@ -1,8 +1,21 @@
+# Use an official Node.js runtime
 FROM node:18-alpine
-WORKDIR /usr/src/app
+
+# Set working directory
+WORKDIR /app
+
+# Copy package files
 COPY package*.json ./
-RUN npm install --only=production
+
+# Install dependencies
+RUN npm install --omit=dev
+
+# Copy the rest of the project
 COPY . .
+
+# Expose port
 EXPOSE 5000
-CMD ["npm", "start"]
+
+# Start the app
+CMD ["node", "server.js"]
 
