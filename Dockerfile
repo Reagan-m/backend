@@ -1,14 +1,20 @@
+# backend/Dockerfile
 FROM node:18-alpine
 
 WORKDIR /app
 
+# copy package files first to leverage caching
 COPY package*.json ./
+RUN npm ci --only=production
 
-RUN npm install
-
+# copy source
 COPY . .
 
-EXPOSE 4050
+# if you use build step (TypeScript etc) uncomment:
+# RUN npm run build
 
-CMD ["node", "server.js"]
+ENV PORT=4040
+EXPOSE 4040
+
+CMD ["node", "index.js"]
 
