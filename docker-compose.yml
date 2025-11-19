@@ -1,0 +1,19 @@
+version: '3.8'
+
+services:
+  mongo-db:
+    image: mongo
+    container_name: mongo-db
+    ports:
+      - "27017:27017"
+
+  backend:
+    build: .
+    container_name: backend-container
+    ports:
+      - "4040:4040"
+    env_file:
+      - .env
+    depends_on:
+      - mongo-db
+

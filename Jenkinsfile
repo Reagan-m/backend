@@ -2,54 +2,49 @@ pipeline {
     agent any
 
     environment {
-        APP_NAME = "backend-app"
-        CONTAINER_NAME = "backend-service"
-        PORT = "4040"
+        REPO_URL = 'https://github.com/Reagan-m/backend.git'
+        IMAGE_NAME = 'backend-app'
+        CONTAINER_NAME = 'backend-container'
     }
 
     stages {
-        stage('Checkout') {
+
+        stage('Checkout Code') {
             steps {
-                checkout scm
+                git branch: 'main', url: "${REPO_URL}", credentialsId: 'github_credentials'
             }
         }
 
-        stage('Install & Test') {
+        stage('Clean Old Containers & Images') {
             steps {
-                sh """
-                npm ci
-                npm test || true
-                """
+                sh '''
+                docker rm -f ${CONTAINER_NAME} || true
+                docker-compose down || true
+                '''
             }
         }
 
-        stage('Build Docker Image') {
+        stage('Build Image & Run Compose') {
             steps {
-                sh """
-                docker build -t ${APP_NAME}:${BUILD_NUMBER} .
-                docker tag ${APP_NAME}:${BUILD_NUMBER} ${APP_NAME}:latest
-                """
+                sh '''
+                docker-compose up -d --build
+                '''
             }
         }
 
-        stage('Deploy') {
+        stage('Check Status') {
             steps {
-                sh """
-                docker stop ${CONTAINER_NAME} || true
-                docker rm ${CONTAINER_NAME} || true
-
-                docker run -d \
-                  --name ${CONTAINER_NAME} \
-                  -p ${PORT}:${PORT} \
-                  ${APP_NAME}:${BUILD_NUMBER}
-                """
+                sh 'docker ps'
             }
         }
     }
 
     post {
-        always {
-            sh "docker images --filter=reference=${APP_NAME}*"
+        success {
+            echo 'Backend deployed successfully!'
+        }
+        failure {
+            echo 'Backend deployment failed!'
         }
     }
 }
