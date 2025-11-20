@@ -1,11 +1,13 @@
-version: '3.8'
-
 services:
   mongo-db:
-    image: mongo
+    image: mongo:latest
     container_name: mongo-db
     ports:
       - "27017:27017"
+    environment:
+      MONGO_INITDB_DATABASE: chatapp
+    volumes:
+      - mongo-data:/data/db
 
   backend:
     build: .
@@ -16,4 +18,10 @@ services:
       - .env
     depends_on:
       - mongo-db
+    environment:
+      MONGO_URI: mongodb://mongo-db:27017/chatapp
+
+volumes:
+  mongo-data:
+
 
